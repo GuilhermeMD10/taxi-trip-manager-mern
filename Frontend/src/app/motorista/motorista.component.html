@@ -1,0 +1,160 @@
+<button onclick="history.back()">Voltar</button>
+<h1>Motoristas</h1>
+<p>Adicione um motorista novo ou aceda apenas à lista</p>
+
+<form #meuFormulario="ngForm">
+  <label for="name">Nome:</label>
+  <input id="name" type="text" name="name" [(ngModel)]="name_edit"  required  />
+
+  <label for="anoNascimento">Ano de Nascimento:</label>
+
+  <input
+    id="anoNascimento"
+    type="number"
+    name="anoNascimento"
+    [(ngModel)]="anoNascimento_edit"
+    required
+    #anoNascimento="ngModel"
+    [ngClass]="{
+      'input-invalido': anoNascimento.invalid && anoNascimento.touched
+    }"
+  />
+  
+  <!-- Mostra a mensagem só se for inválido e já tiver sido tocado -->
+  <div *ngIf="anoNascimento.touched && !verificaIdadeValida(anoNascimento.value)" class="info-msg">
+    O motorista deve ter pelo menos 18 anos.
+  </div>
+  
+
+  <label for="cartaConducao">Número da Carta de Condução:</label>
+
+  <input
+    id="cartaConducao"
+    type="number"
+    name="cartaConducao"
+    [(ngModel)]="cartaConducao_edit"
+    required
+    #cartaConducao="ngModel"
+    [ngClass]="{
+      'input-invalido': cartaConducao.touched && !verificaCartaConducaoUnica(cartaConducao.value)
+    }"
+  />
+  
+  <div *ngIf="cartaConducao.touched && !verificaCartaConducaoUnica(cartaConducao.value)" class="info-msg">
+    Já existe um motorista com essa carta de condução.
+  </div>
+  
+
+  <label for="nif">NIF:</label>
+
+  <input 
+    id="nif" 
+    type="number" 
+    name="nif" 
+    [(ngModel)]="nif_edit" 
+    required 
+    pattern="^[0-9]{9}$"
+    #nif="ngModel"
+  />
+  <div *ngIf="nif.invalid && nif.touched" class="info-msg">
+    O nif deve ter 9 dígitos
+  </div>
+
+  <label for="genero">Género:</label>
+  <select id="genero" name="genero" [(ngModel)]="genero_edit" required>
+    <option value="">Selecione...</option>
+    <option value="Masculino">Masculino</option>
+    <option value="Feminino">Feminino</option>
+  </select>
+
+  <h3>Morada</h3>
+
+  <label for="rua">Rua:</label>
+  <input id="rua" type="text" name="rua" [(ngModel)]="rua_edit" required />
+
+  <label for="numeroPorta">Número da Porta:</label>
+  <input id="numeroPorta" type="number" name="numeroPorta" [(ngModel)]="numeroPorta_edit" required />
+
+    <label for="codigoPostal">Código Postal:</label>
+    <input
+      id="codigoPostal"
+      type="text"
+      name="codigoPostal"
+      [(ngModel)]="codigoPostal_edit"
+      required
+      (blur)="buscarLocalidade(meuFormulario.value.codigoPostal)" />
+  
+    <div *ngIf="codigoPostalNaoEncontrado" class="info-msg">
+      Código postal não encontrado.
+    </div>
+
+  
+  
+
+  <label for="localidade">Localidade:</label>
+  <input id="localidade" type="text" name="localidade" [(ngModel)]="localidade" required />
+
+
+  <div class="botoes-formulario">
+    <button type="button" class="add-button"
+      [disabled]="(!meuFormulario.form.valid) || (isEditMode && !hasFormChanged())"
+      (click)="registarMotorista(
+        meuFormulario.value.name,
+        +meuFormulario.value.anoNascimento,
+        +meuFormulario.value.cartaConducao,
+        +meuFormulario.value.nif,
+        meuFormulario.value.genero,
+        meuFormulario.value.rua,
+        +meuFormulario.value.numeroPorta,
+        meuFormulario.value.codigoPostal,
+        meuFormulario.value.localidade,
+        meuFormulario
+      );">
+      {{ isEditMode ? 'Atualizar Motorista' : 'Registar Motorista' }}
+    </button>
+
+    <button type="button" class="clear-button" (click)="meuFormulario.resetForm()">
+      Limpar Formulário
+    </button>
+
+    <div *ngIf="mensagemSucesso" class="mensagem-sucesso">
+      {{ mensagemSucesso }}
+    </div>
+    
+  </div>
+
+
+</form>
+
+<h2>Motoristas</h2>
+
+<div *ngIf="motoristas.length === 0">
+  <p>Nenhum motorista registado ainda.</p>
+</div>
+
+<label for="nif">NIF:</label>
+<input type="number" [(ngModel)]="nifProcurado" placeholder="Introduza o NIF">
+<br>
+<button (click)="procurarMotorista()">Procurar Motorista</button>
+
+<!-- Mensagem de erro, se não encontrado -->
+<p *ngIf="motoristaNaoEncontrado" style="color: red;">Motorista não encontrado.</p>
+
+
+<ul class="lista-motoristas" *ngIf="motoristas.length > 0">
+  <li *ngFor="let motorista of motoristas" class="cartao-motorista">
+    <a [routerLink]="'/motorista-perfil/' + motorista._id">
+      <span class="badge">&nbsp;</span>{{ motorista.name }}
+    </a>
+    <div class="action-buttons">
+      <button type="button" class="edit" title="edit motorista"
+        (click)="edit(motorista)" [class.selected]="editingMotoristaId === motorista._id">⚙</button>
+      <button type="button" class="delete" title="delete motorista"
+        (click)="delete(motorista)" [disabled]="!canDeleteMap[motorista._id]">x</button>
+    </div>
+  </li>
+</ul>
+
+ 
+
+
